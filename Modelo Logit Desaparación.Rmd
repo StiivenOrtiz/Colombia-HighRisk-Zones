@@ -99,7 +99,7 @@ DESAPARICIONES_FORZADAS_9 <- DESAPARICIONES_FORZADAS_8
 # se debe revisar el comportamiento de la variable Y (Respuesta), en este caso es si la variable está balanceada o no, si no lo está se recomienda balancear la base de datos
 
 # Verificar el balanceo de la variable Y
-table(Basef$y)
+table(DESAPARICIONES_FORZADAS_9$Riesgo)
 
 # Para este caso dado, 0 = 98728 y 1 = 95758, dado  que la diferencia es pequeña, no se recomienda balancear la base de datos, pero si se desea balancear, se puede hacer de la siguiente manera:
 
@@ -110,11 +110,18 @@ table(Basef$y)
 #           ungroup()
 #           table(Basef1$y)
 
+DESAPARICIONES_FORZADAS_10 <- DESAPARICIONES_FORZADAS_9 %>%
+  group_by(Riesgo) %>%
+  slice_sample(n = min(table(DESAPARICIONES_FORZADAS_9$Riesgo))) %>%
+  ungroup()
+
+table(DESAPARICIONES_FORZADAS_10$Riesgo)
+
 # Si por ejemplo en la variable Y, la categoría 1 tiene 20000 valores y la categoría 2 tiene 2000 valores. la función sample, selecciona una muestra aleatoria de tamaño 2000 de la categoría 1, con eso la nueva base tendrá 2000 valores en cada categoría.
 ```
 
 ```{r}
-table(DESAPARICIONES_FORZADAS_9$Riesgo)
+table(DESAPARICIONES_FORZADAS_10$Riesgo)
 
 # Como 0 = 40958 y 1 = 5845, entonces tenemos que balancear la base de datos, dado que la diferencia es muy grande.
 
@@ -125,22 +132,66 @@ table(DESAPARICIONES_FORZADAS_9$Riesgo)
 ## Generación de bases de entrenamiento y prueba
 
 ```{r}
-require(caret)
-BaseEntrenamiento <- createDataPartition(y = Basef$y, p = 0.7, list = FALSE)
-Entrenamiento <- Basef[BaseEntrenamiento, ] # Base de entrenamiento
-Test <- Basef[-BaseEntrenamiento, ] # Base de prueba
+#require(caret)
+
+#BaseEntrenamiento <- createDataPartition(y = DESAPARICIONES_FORZADAS_10$Riesgo, p = 0.7, list = FALSE)
+#Entrenamiento <- DESAPARICIONES_FORZADAS_10[BaseEntrenamiento, ] # Base de entrenamiento
+#Test <- DESAPARICIONES_FORZADAS_10[-BaseEntrenamiento, ] # Base de prueba
+
+
 # Explicación de DATOS[-VARIABLE]: Este código significa que se está seleccionando todas las filas de la base de datos, pero excluyendo las filas que están en la variable BaseEntrenamiento. En otras palabras, se está creando una nueva base de datos (Test) que contiene solo las filas que no están en la base de entrenamiento (BaseEntrenamiento). 
-dim(Entrenamiento) # Dimensiones de la base de entrenamiento
-dim(Test) # Dimensiones de la base de prueba
+
+#Entrenamiento$Anio_hecho <- as.numeric(as.character(Entrenamiento$Anio_hecho))
+#Test$Anio_hecho <- as.numeric(as.character(Test$Anio_hecho))
+
+
+#dim(Entrenamiento) # Dimensiones de la base de entrenamiento
+#dim(Test) # Dimensiones de la base de prueba
 ```
+
+```{r}
+DESAPARICIONES_FORZADAS_10$Anio_hecho <- as.numeric(as.character(DESAPARICIONES_FORZADAS_10$Anio_hecho))
+
+# 1. Dividir en entrenamiento y prueba
+set.seed(123)
+indice <- sample(1:nrow(DESAPARICIONES_FORZADAS_10), 0.7 * nrow(DESAPARICIONES_FORZADAS_10))
+Entrenamiento <- DESAPARICIONES_FORZADAS_10[indice, ]
+Test <- DESAPARICIONES_FORZADAS_10[-indice, ]
+
+# 2. Igualar niveles en factores del Test
+for (col in names(Entrenamiento)) {
+  if (is.factor(Entrenamiento[[col]])) {
+    Test[[col]] <- factor(Test[[col]], levels = levels(Entrenamiento[[col]]))
+  }
+}
+
+# 3. Filtrar filas completas en Test (evita valores NA por niveles no coincidentes)
+Test_filtrado <- Test[complete.cases(Test), ]
+
+# 4. Entrenar modelo
+modelo.logit <- glm(Riesgo ~ ., data = Entrenamiento, family = "binomial")
+
+# Filtra sólo las filas donde Nombre_Municipio no sea NA
+Test_filtrado <- Test[!is.na(Test$Nombre_Municipio), ]
+
+# Elimina niveles no usados (opcional pero recomendado)
+Test_filtrado$Nombre_Municipio <- droplevels(Test_filtrado$Nombre_Municipio)
+
+
+# 5. Predecir con Test_filtrado
+predicciones <- predict(modelo.logit, newdata = Test_filtrado, type = "response")
+
+
+```
+
 
 A partir del entrenamiento se genera el modelo LOGIT para clasificar los individuos en la vairbale $y$ (cotización a pensiones) y se evalua el modelo con la base de prueba.
 
 ```{r}
-modelo.logit <- glm(y ~ ., data = Entrenamiento, family="binomial")
+modelo.logit <- glm(Riesgo ~ ., data = Entrenamiento, family="binomial")
 #modelo.logit <- glm(y ~ ., data = Entrenamiento, family = binomial(link = "logit")) # Modelo logit
 
-summary(modelo.logit) # Resumen del modelo
+summary(modelo.logit) # Resumen del modelo```
 ```
 
 ```{r}
