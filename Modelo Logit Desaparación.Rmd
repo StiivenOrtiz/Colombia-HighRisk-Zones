@@ -1,6 +1,6 @@
 ---
 title: "Modelo Logit"
-author: "Stiven Ortiz Noreña"
+author: "Stiven Ortiz Noreña, Jorge Chantryt, Juan Francisco Ramirez, Esteban Salazar, Andres Cano"
 output: word_document
 ---
 
@@ -35,12 +35,12 @@ lapply(paquetes, library, character.only = TRUE)
 
 ```{r}
 DESAPARICIONES_FORZADAS_0 <- read.csv(here("data","DESAPARACION_FORZADA.csv"), sep = ",")
-View(DESAPARICIONES_FORZADAS_0)
+#View(DESAPARICIONES_FORZADAS_0)
 ```
 
 ```{r}
 Anio_hecho <- DESAPARICIONES_FORZADAS_0$Anio_hecho
-mes_hecho <- DESAPARICIONES_FORZADAS_0$mes_hecho 
+#mes_hecho <- DESAPARICIONES_FORZADAS_0$mes_hecho 
 Total_Victimas_Caso <- DESAPARICIONES_FORZADAS_0$Total_Victimas_Caso
 Nombre_Municipio <- DESAPARICIONES_FORZADAS_0$Nombre_Municipio 
 Nombre_Departamento <- DESAPARICIONES_FORZADAS_0$Nombre_Departamento
@@ -48,7 +48,8 @@ Fuerza_Armada <- DESAPARICIONES_FORZADAS_0$Fuerza_Armada
 
 # Crear una nueva base con las variables seleccionadas y se eliminaran los NA (FAltantes)
 
-DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
+#DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
+DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
 DESAPARICIONES_FORZADAS_2 <- na.omit(DESAPARICIONES_FORZADAS_1) # Elimina todos los individuos que no tengan información en alguna de las variables seleccionadas
 DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
 ```
@@ -57,20 +58,28 @@ DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
 # Eliminar filas donde Anio_hecho es igual a 0
 DESAPARICIONES_FORZADAS_4 <- DESAPARICIONES_FORZADAS_3[!(DESAPARICIONES_FORZADAS_3$Anio_hecho == 0), ]
 # Eliminar filas donde mes_hecho es igual a 0
-DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$mes_hecho == 0), ]
+#DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$mes_hecho == 0), ]
+# Eliminar filas donde Total_Victimas_Caso es igual a 0
+DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$Total_Victimas_Caso == 0), ]
+# Si Nombre_Departamento es "SIN INFORMACION", lo eliminamos
+DESAPARICIONES_FORZADAS_6 <- DESAPARICIONES_FORZADAS_5[!(DESAPARICIONES_FORZADAS_5$Nombre_Departamento == "SIN INFORMACION"), ]
 
-DESAPARICIONES_FORZADAS_6 <- DESAPARICIONES_FORZADAS_5
+DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6
 ```
 
 ```{r}
 # Si la Fuerza_Armada es "OTRO ¿CUÁL?", le asignamos "DESCONOCIDO"
-DESAPARICIONES_FORZADAS_6$Fuerza_Armada[DESAPARICIONES_FORZADAS_6$Fuerza_Armada == "OTRO ¿CUÁL?"] <- "DESCONOCIDO"
+DESAPARICIONES_FORZADAS_7$Fuerza_Armada[DESAPARICIONES_FORZADAS_7$Fuerza_Armada == "OTRO ¿CUÁL?"] <- "DESCONOCIDO"
 ```
 
 ```{r}
 # Agrupar por las variables especificadas y sumar Total_Victimas_Caso
-DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6 %>%
-  group_by(Anio_hecho, mes_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
+#DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6 %>%
+#  group_by(Anio_hecho, mes_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
+#  summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
+
+DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_7 %>%
+  group_by(Anio_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
   summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
 ```
 
@@ -83,7 +92,7 @@ DESAPARICIONES_FORZADAS_8 <- DESAPARICIONES_FORZADAS_7 %>%
   mutate(Riesgo = ifelse(Total_Victimas > umbral_riesgo, 1, 0))
 
 DESAPARICIONES_FORZADAS_8$Anio_hecho <- as.factor(DESAPARICIONES_FORZADAS_8$Anio_hecho)
-DESAPARICIONES_FORZADAS_8$mes_hecho <- as.factor(DESAPARICIONES_FORZADAS_8$mes_hecho)
+#DESAPARICIONES_FORZADAS_8$mes_hecho <- as.factor(DESAPARICIONES_FORZADAS_8$mes_hecho)
 DESAPARICIONES_FORZADAS_8$Nombre_Municipio <- as.factor(DESAPARICIONES_FORZADAS_8$Nombre_Municipio)
 DESAPARICIONES_FORZADAS_8$Nombre_Departamento <- as.factor(DESAPARICIONES_FORZADAS_8$Nombre_Departamento)
 DESAPARICIONES_FORZADAS_8$Fuerza_Armada <- as.factor(DESAPARICIONES_FORZADAS_8$Fuerza_Armada)
@@ -123,67 +132,37 @@ table(DESAPARICIONES_FORZADAS_10$Riesgo)
 ```{r}
 table(DESAPARICIONES_FORZADAS_10$Riesgo)
 
+DESAPARICIONES_FORZADAS_10 <- DESAPARICIONES_FORZADAS_10 %>%
+  group_by(Nombre_Municipio) %>%
+  filter(n() > 2) %>%
+  ungroup() # Para eliminar los municipios con menos de 2 observaciones
+
+DESAPARICIONES_FORZADAS_10 <- droplevels(DESAPARICIONES_FORZADAS_10) # Para eliminar los niveles vacíos de la variable Nombre_Municipio
+
+#table(DESAPARICIONES_FORZADAS_10$Nombre_Municipio)
+table(DESAPARICIONES_FORZADAS_10$Riesgo)
+
+
 # Como 0 = 40958 y 1 = 5845, entonces tenemos que balancear la base de datos, dado que la diferencia es muy grande.
-
-
 ```
 
 
 ## Generación de bases de entrenamiento y prueba
 
 ```{r}
-#require(caret)
+require(caret)
 
-#BaseEntrenamiento <- createDataPartition(y = DESAPARICIONES_FORZADAS_10$Riesgo, p = 0.7, list = FALSE)
-#Entrenamiento <- DESAPARICIONES_FORZADAS_10[BaseEntrenamiento, ] # Base de entrenamiento
-#Test <- DESAPARICIONES_FORZADAS_10[-BaseEntrenamiento, ] # Base de prueba
+DESAPARICIONES_FORZADAS_10$Anio_hecho <- as.numeric(as.character(DESAPARICIONES_FORZADAS_10$Anio_hecho))
 
+BaseEntrenamiento <- createDataPartition(y = DESAPARICIONES_FORZADAS_10$Riesgo, p = 0.7, list = FALSE)
+Entrenamiento <- DESAPARICIONES_FORZADAS_10[BaseEntrenamiento, ] # Base de entrenamiento
+Test <- DESAPARICIONES_FORZADAS_10[-BaseEntrenamiento, ] # Base de prueba
 
 # Explicación de DATOS[-VARIABLE]: Este código significa que se está seleccionando todas las filas de la base de datos, pero excluyendo las filas que están en la variable BaseEntrenamiento. En otras palabras, se está creando una nueva base de datos (Test) que contiene solo las filas que no están en la base de entrenamiento (BaseEntrenamiento). 
 
-#Entrenamiento$Anio_hecho <- as.numeric(as.character(Entrenamiento$Anio_hecho))
-#Test$Anio_hecho <- as.numeric(as.character(Test$Anio_hecho))
-
-
-#dim(Entrenamiento) # Dimensiones de la base de entrenamiento
-#dim(Test) # Dimensiones de la base de prueba
+dim(Entrenamiento) # Dimensiones de la base de entrenamiento
+dim(Test) # Dimensiones de la base de prueba
 ```
-
-```{r}
-DESAPARICIONES_FORZADAS_10$Anio_hecho <- as.numeric(as.character(DESAPARICIONES_FORZADAS_10$Anio_hecho))
-
-# 1. Dividir en entrenamiento y prueba
-set.seed(123)
-indice <- sample(1:nrow(DESAPARICIONES_FORZADAS_10), 0.7 * nrow(DESAPARICIONES_FORZADAS_10))
-Entrenamiento <- DESAPARICIONES_FORZADAS_10[indice, ]
-Test <- DESAPARICIONES_FORZADAS_10[-indice, ]
-
-# 2. Igualar niveles en factores del Test
-for (col in names(Entrenamiento)) {
-  if (is.factor(Entrenamiento[[col]])) {
-    Test[[col]] <- factor(Test[[col]], levels = levels(Entrenamiento[[col]]))
-  }
-}
-
-# 3. Filtrar filas completas en Test (evita valores NA por niveles no coincidentes)
-Test_filtrado <- Test[complete.cases(Test), ]
-
-# 4. Entrenar modelo
-modelo.logit <- glm(Riesgo ~ ., data = Entrenamiento, family = "binomial")
-
-# Filtra sólo las filas donde Nombre_Municipio no sea NA
-Test_filtrado <- Test[!is.na(Test$Nombre_Municipio), ]
-
-# Elimina niveles no usados (opcional pero recomendado)
-Test_filtrado$Nombre_Municipio <- droplevels(Test_filtrado$Nombre_Municipio)
-
-
-# 5. Predecir con Test_filtrado
-predicciones <- predict(modelo.logit, newdata = Test_filtrado, type = "response")
-
-
-```
-
 
 A partir del entrenamiento se genera el modelo LOGIT para clasificar los individuos en la vairbale $y$ (cotización a pensiones) y se evalua el modelo con la base de prueba.
 
@@ -202,62 +181,14 @@ head(Entrenamientof) # Ver las primeras filas de la predicción
 ```{r}
 y1 <- factor(ifelse(Entrenamientof > 0.5, 1, 0))
 levels(y1) <- c("Si", "No")
-levels(Test$y) <- c("Si", "No")
-table(Prediccion = y1, Realidad = Test$y) # Tabla de confusión
+levels(Test$Riesgo) <- c("Si", "No")
+table(Prediccion = y1, Realidad = Test$Riesgo) # Tabla de confusión
 ```
 
 ```{r}
-conf_matrix <- confusionMatrix(y1, Test$y)
+conf_matrix <- confusionMatrix(y1, Test$Riesgo)
 conf_matrix
 ```
-
-# Interpretación del modlo
-
-             Estimate Std. Error z value Pr(>|z|)    
-(Intercept)  3.221400   0.088742  36.301  < 2e-16 ***
-x_11        -0.179294   0.012256 -14.629  < 2e-16 ***
-x_22        -0.329197   0.015376 -21.410  < 2e-16 ***
-x_23        -0.273228   0.016203 -16.862  < 2e-16 ***
-x_24         0.501138   0.034355  14.587  < 2e-16 ***
-x_32        -0.984698   0.052559 -18.735  < 2e-16 ***
-x_33        -1.843870   0.058047 -31.765  < 2e-16 ***
-x_34        -2.039062   0.068522 -29.758  < 2e-16 ***
-x_35        -3.220442   0.086141 -37.386  < 2e-16 ***
-x_4         -0.105164   0.007054 -14.908  < 2e-16 ***
-x_52        -0.331741   0.013411 -24.736  < 2e-16 ***
-x_53        -0.167680   0.034204  -4.902 9.47e-07 ***
-x_61        -0.146829   0.012722 -11.541  < 2e-16 ***
----
-
-
-
-* En primer lugar se verifica que los $P-valores = Pr(>|z|)$ sean menores a un $\alpha$ determinado previamente. Por lo general es igual a $0.05$ o $5\%$. La hipotesis nula que se debe rechazar es $H_0: \beta_i = 0$, donde $i$ corresponde a cada variable y cada categoría.
-
-* $H_0: \beta_0 = 0$ correspondiente al intercepto tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto el intercepto debe estar en el modelo. (Nota: Cualquier prueba de hipotesis se puede rechazar con la siguiente regla. Rechazar $H_0$ si $P-valor < \alpha$).
-
-* $H_0: \beta_1 = 0$ correspondiente a la variable $x_{11}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{11}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{11}$ corresponde al grupo de los hombre, por lo tanto pasar de Hombre a Mujer (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.180954$ o $18.0954\%$.
-
-* $H_0: \beta_2 = 0$ correspondiente a la variable $x_{22}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{22}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{22}$ corresponde al grupo de edad entre 29 y 40 años , por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.329197$ o $32.9197\%$.
-
-* $H_0: \beta_3 = 0$ correspondiente a la variable $x_{23}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{23}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{23}$ corresponde al grupo de edad entre 41 y 60 años , por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.273228$ o $27.3228\%$.
-
-* $H_0: \beta_4 = 0$ correspondiente a la variable $x_{24}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{24}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{24}$ corresponde al grupo de edad mayor a 60 años , por lo tanto pasar de este grupo a uno menor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.501138$ o $50.1138\%$.
-
-* $H_0: \beta_5 = 0$ correspondiente a la variable $x_{32}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{32}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{32}$ corresponde al grupo de nivel educativo Primaria, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.984698$ o $98.4698\%$.
-
-* $H_0: \beta_6 = 0$ correspondiente a la variable $x_{33}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{33}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{33}$ corresponde al grupo de nivel educativo Secundaria, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $1.843870$.
-
-* $H_0: \beta_7 = 0$ correspondiente a la variable $x_{34}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{34}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{34}$ corresponde al grupo de nivel educativo Técnico, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $2.039062$.
-
-* $H_0: \beta_8 = 0$ correspondiente a la variable $x_{35}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{35}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{35}$ corresponde al grupo de nivel educativo Profesional, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $3.220442$.
-
-* $H_0: \beta_9 = 0$ correspondiente a la variable $x_{4}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{4}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{4}$ corresponde al grupo de nivel educativo Sin estudios, por ende por cada año que aumente la variable disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No cotizante ($Y = 0$) en un $0.105164$ o $10.5164\%$.
-
-* $H_0: \beta_{10} = 0$ correspondiente a la variable $x_{52}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{52}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{52}$ corresponde al grupo de estrato 1, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.331741$ o $33.1741\%$.
-
-* $H_0: \beta_{11} = 0$ correspondiente a la variable $x_{53}$ tiene un $P-valor = 9.47e-07$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{53}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{53}$ corresponde al grupo de estrato 2, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.167680$ o $16.7680\%$.
-
-* $H_0: \beta_{12} = 0$ correspondiente a la variable $x_{61}$ tiene un $P-valor = < 2e-16$ y con $\alpha = 0.05$ se rechaza $H_0$, por lo tanto la variable $x_{61}$ debe estar en el modelo. Su interpretación es la sigueinte: $x_{61}$ corresponde al grupo de jefe de hogar, por lo tanto pasar de este grupo a uno mayor (Que es el grupo 0 o de comparación) disminuye la probabilidad de pasa de cotizante ($Y = 1$) a No Cotizante ($Y=0$) en un $0.146829$ o $14.6829\%$.
 
 
 
