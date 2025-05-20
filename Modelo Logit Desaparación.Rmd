@@ -31,84 +31,13 @@ lapply(paquetes, library, character.only = TRUE)
 # Balanceo de datos, cuando hay una categoría que es mayoritaria, puede arruinar todo, entonces se puede hacer balanceo para tener resultados mas concistentes 
 ```
 
-# Carga de la base de datos
-
-```{r}
-DESAPARICIONES_FORZADAS_0 <- read.csv(here("data","DESAPARACION_FORZADA.csv"), sep = ",")
-#View(DESAPARICIONES_FORZADAS_0)
-```
-
-```{r}
-Anio_hecho <- DESAPARICIONES_FORZADAS_0$Anio_hecho
-#mes_hecho <- DESAPARICIONES_FORZADAS_0$mes_hecho 
-Total_Victimas_Caso <- DESAPARICIONES_FORZADAS_0$Total_Victimas_Caso
-Nombre_Municipio <- DESAPARICIONES_FORZADAS_0$Nombre_Municipio 
-Nombre_Departamento <- DESAPARICIONES_FORZADAS_0$Nombre_Departamento
-Fuerza_Armada <- DESAPARICIONES_FORZADAS_0$Fuerza_Armada
-
-# Crear una nueva base con las variables seleccionadas y se eliminaran los NA (FAltantes)
-
-#DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
-DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
-DESAPARICIONES_FORZADAS_2 <- na.omit(DESAPARICIONES_FORZADAS_1) # Elimina todos los individuos que no tengan información en alguna de las variables seleccionadas
-DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
-```
-
-```{r}
-# Eliminar filas donde Anio_hecho es igual a 0
-DESAPARICIONES_FORZADAS_4 <- DESAPARICIONES_FORZADAS_3[!(DESAPARICIONES_FORZADAS_3$Anio_hecho == 0), ]
-# Eliminar filas donde mes_hecho es igual a 0
-#DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$mes_hecho == 0), ]
-# Eliminar filas donde Total_Victimas_Caso es igual a 0
-DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$Total_Victimas_Caso == 0), ]
-# Si Nombre_Departamento es "SIN INFORMACION", lo eliminamos
-DESAPARICIONES_FORZADAS_6 <- DESAPARICIONES_FORZADAS_5[!(DESAPARICIONES_FORZADAS_5$Nombre_Departamento == "SIN INFORMACION"), ]
-
-DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6
-```
-
-```{r}
-# Si la Fuerza_Armada es "OTRO ¿CUÁL?", le asignamos "DESCONOCIDO"
-DESAPARICIONES_FORZADAS_7$Fuerza_Armada[DESAPARICIONES_FORZADAS_7$Fuerza_Armada == "OTRO ¿CUÁL?"] <- "DESCONOCIDO"
-```
-
-```{r}
-# Agrupar por las variables especificadas y sumar Total_Victimas_Caso
-#DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6 %>%
-#  group_by(Anio_hecho, mes_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
-#  summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
-
-DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_7 %>%
-  group_by(Anio_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
-  summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
-```
-
-```{r}
-# Definir umbral (percentil 75 de las víctimas totales)
-umbral_riesgo <- quantile(DESAPARICIONES_FORZADAS_7$Total_Victimas, 0.75, na.rm = TRUE)
-
-# Crear la variable de riesgo (1 = alto, 0 = bajo)
-DESAPARICIONES_FORZADAS_8 <- DESAPARICIONES_FORZADAS_7 %>%
-  mutate(Riesgo = ifelse(Total_Victimas > umbral_riesgo, 1, 0))
-
-DESAPARICIONES_FORZADAS_8$Anio_hecho <- as.factor(DESAPARICIONES_FORZADAS_8$Anio_hecho)
-#DESAPARICIONES_FORZADAS_8$mes_hecho <- as.factor(DESAPARICIONES_FORZADAS_8$mes_hecho)
-DESAPARICIONES_FORZADAS_8$Nombre_Municipio <- as.factor(DESAPARICIONES_FORZADAS_8$Nombre_Municipio)
-DESAPARICIONES_FORZADAS_8$Nombre_Departamento <- as.factor(DESAPARICIONES_FORZADAS_8$Nombre_Departamento)
-DESAPARICIONES_FORZADAS_8$Fuerza_Armada <- as.factor(DESAPARICIONES_FORZADAS_8$Fuerza_Armada)
-DESAPARICIONES_FORZADAS_8$Riesgo <- as.factor(DESAPARICIONES_FORZADAS_8$Riesgo)
-
-# Total_Victimas se mantiene como numérica
-DESAPARICIONES_FORZADAS_9 <- DESAPARICIONES_FORZADAS_8
-```
-
 # Modelo de clasificación
 
 ```{r}
-# se debe revisar el comportamiento de la variable Y (Respuesta), en este caso es si la variable está balanceada o no, si no lo está se recomienda balancear la base de datos
+DESAPARICIONES_FORZADAS_7 <- read.csv(here("data", "DESAPARICIONES_CLEAN.csv"), sep = ",")
 
 # Verificar el balanceo de la variable Y
-table(DESAPARICIONES_FORZADAS_9$Riesgo)
+table(DESAPARICIONES_FORZADAS_7$Riesgo)
 
 # Para este caso dado, 0 = 98728 y 1 = 95758, dado  que la diferencia es pequeña, no se recomienda balancear la base de datos, pero si se desea balancear, se puede hacer de la siguiente manera:
 
@@ -119,28 +48,28 @@ table(DESAPARICIONES_FORZADAS_9$Riesgo)
 #           ungroup()
 #           table(Basef1$y)
 
-DESAPARICIONES_FORZADAS_10 <- DESAPARICIONES_FORZADAS_9 %>%
+DESAPARICIONES_FORZADAS_8 <- DESAPARICIONES_FORZADAS_7 %>%
   group_by(Riesgo) %>%
-  slice_sample(n = min(table(DESAPARICIONES_FORZADAS_9$Riesgo))) %>%
+  slice_sample(n = min(table(DESAPARICIONES_FORZADAS_7$Riesgo))) %>%
   ungroup()
 
-table(DESAPARICIONES_FORZADAS_10$Riesgo)
+table(DESAPARICIONES_FORZADAS_8$Riesgo)
 
 # Si por ejemplo en la variable Y, la categoría 1 tiene 20000 valores y la categoría 2 tiene 2000 valores. la función sample, selecciona una muestra aleatoria de tamaño 2000 de la categoría 1, con eso la nueva base tendrá 2000 valores en cada categoría.
 ```
 
 ```{r}
-table(DESAPARICIONES_FORZADAS_10$Riesgo)
+table(DESAPARICIONES_FORZADAS_8$Riesgo)
 
-DESAPARICIONES_FORZADAS_10 <- DESAPARICIONES_FORZADAS_10 %>%
+DESAPARICIONES_FORZADAS_8 <- DESAPARICIONES_FORZADAS_8 %>%
   group_by(Nombre_Municipio) %>%
   filter(n() > 2) %>%
   ungroup() # Para eliminar los municipios con menos de 2 observaciones
 
-DESAPARICIONES_FORZADAS_10 <- droplevels(DESAPARICIONES_FORZADAS_10) # Para eliminar los niveles vacíos de la variable Nombre_Municipio
+DESAPARICIONES_FORZADAS_8 <- droplevels(DESAPARICIONES_FORZADAS_8) # Para eliminar los niveles vacíos de la variable Nombre_Municipio
 
-#table(DESAPARICIONES_FORZADAS_10$Nombre_Municipio)
-table(DESAPARICIONES_FORZADAS_10$Riesgo)
+#table(DESAPARICIONES_FORZADAS_8$Nombre_Municipio)
+table(DESAPARICIONES_FORZADAS_8$Riesgo)
 
 
 # Como 0 = 40958 y 1 = 5845, entonces tenemos que balancear la base de datos, dado que la diferencia es muy grande.
@@ -152,11 +81,11 @@ table(DESAPARICIONES_FORZADAS_10$Riesgo)
 ```{r}
 require(caret)
 
-DESAPARICIONES_FORZADAS_10$Anio_hecho <- as.numeric(as.character(DESAPARICIONES_FORZADAS_10$Anio_hecho))
+DESAPARICIONES_FORZADAS_8$Anio_hecho <- as.numeric(as.character(DESAPARICIONES_FORZADAS_8$Anio_hecho))
 
-BaseEntrenamiento <- createDataPartition(y = DESAPARICIONES_FORZADAS_10$Riesgo, p = 0.7, list = FALSE)
-Entrenamiento <- DESAPARICIONES_FORZADAS_10[BaseEntrenamiento, ] # Base de entrenamiento
-Test <- DESAPARICIONES_FORZADAS_10[-BaseEntrenamiento, ] # Base de prueba
+BaseEntrenamiento <- createDataPartition(y = DESAPARICIONES_FORZADAS_8$Nombre_Municipio, p = 0.7, list = FALSE)
+Entrenamiento <- DESAPARICIONES_FORZADAS_8[BaseEntrenamiento, ] # Base de entrenamiento
+Test <- DESAPARICIONES_FORZADAS_8[-BaseEntrenamiento, ] # Base de prueba
 
 # Explicación de DATOS[-VARIABLE]: Este código significa que se está seleccionando todas las filas de la base de datos, pero excluyendo las filas que están en la variable BaseEntrenamiento. En otras palabras, se está creando una nueva base de datos (Test) que contiene solo las filas que no están en la base de entrenamiento (BaseEntrenamiento). 
 
@@ -179,16 +108,16 @@ head(Entrenamientof) # Ver las primeras filas de la predicción
 ```
 
 ```{r}
-y1 <- factor(ifelse(Entrenamientof > 0.5, 1, 0))
-levels(y1) <- c("Si", "No")
-levels(Test$Riesgo) <- c("Si", "No")
-table(Prediccion = y1, Realidad = Test$Riesgo) # Tabla de confusión
+library(caret)
+
+y_pred <- factor(ifelse(Entrenamientof > 0.5, 1, 0))
+y_real <- as.factor(Test$Riesgo)
+levels(y_pred) <- c("Si", "No")
+levels(y_real) <- c("Si", "No")
+table(Prediccion = y_pred, Realidad = y_real) # Tabla de confusión
 ```
 
 ```{r}
-conf_matrix <- confusionMatrix(y1, Test$Riesgo)
+conf_matrix <- confusionMatrix(y_pred, y_real)
 conf_matrix
 ```
-
-
-
