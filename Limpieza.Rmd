@@ -39,6 +39,8 @@ DESAPARICIONES_FORZADAS_0 <- read.csv(here("data","DESAPARACION_FORZADA.csv"), s
 ```
 
 ```{r}
+DESAPARICIONES_FORZADAS_0 <- DESAPARICIONES_FORZADAS_0[!(DESAPARICIONES_FORZADAS_0$Nombre_Municipio == "SIN INFORMACION"), ]
+
 Anio_hecho <- DESAPARICIONES_FORZADAS_0$Anio_hecho
 mes_hecho <- DESAPARICIONES_FORZADAS_0$mes_hecho 
 Total_Victimas_Caso <- DESAPARICIONES_FORZADAS_0$Total_Victimas_Caso
@@ -48,7 +50,6 @@ Nombre_Municipio <- paste(DESAPARICIONES_FORZADAS_0$Nombre_Municipio, "-", DESAP
 
 # Crear una nueva base con las variables seleccionadas y se eliminaran los NA (FAltantes)
 
-#DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada)
 DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio)
 DESAPARICIONES_FORZADAS_2 <- na.omit(DESAPARICIONES_FORZADAS_1) # Elimina todos los individuos que no tengan información en alguna de las variables seleccionadas
 DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
@@ -102,5 +103,5 @@ DESAPARICIONES_FORZADAS_6$Riesgo <- as.factor(DESAPARICIONES_FORZADAS_6$Riesgo)
 # Total_Victimas se mantiene como numérica
 DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6
 
-write.csv(x = DESAPARICIONES_FORZADAS_7, file = here("data", "DESAPARICIONES_CLEAN.csv"), append = FALSE, quote = TRUE, sep = ",")
+write.csv(x = DESAPARICIONES_FORZADAS_7, file = here("data", "DESAPARICIONES_CLEAN.csv"), append = FALSE, quote = TRUE, sep = ",", row.names = FALSE)
 ```

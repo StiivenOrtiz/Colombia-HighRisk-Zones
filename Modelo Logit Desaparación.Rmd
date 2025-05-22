@@ -39,23 +39,12 @@ DESAPARICIONES_FORZADAS_7 <- read.csv(here("data", "DESAPARICIONES_CLEAN.csv"), 
 # Verificar el balanceo de la variable Y
 table(DESAPARICIONES_FORZADAS_7$Riesgo)
 
-# Para este caso dado, 0 = 98728 y 1 = 95758, dado  que la diferencia es pequeña, no se recomienda balancear la base de datos, pero si se desea balancear, se puede hacer de la siguiente manera:
-
-# require(dplyr)
-# Basef1 <- Basef %>%
-#           group_by(y) %>%
-#           sample(min(table(Basef$y))) %>%
-#           ungroup()
-#           table(Basef1$y)
-
 DESAPARICIONES_FORZADAS_8 <- DESAPARICIONES_FORZADAS_7 %>%
   group_by(Riesgo) %>%
   slice_sample(n = min(table(DESAPARICIONES_FORZADAS_7$Riesgo))) %>%
   ungroup()
 
 table(DESAPARICIONES_FORZADAS_8$Riesgo)
-
-# Si por ejemplo en la variable Y, la categoría 1 tiene 20000 valores y la categoría 2 tiene 2000 valores. la función sample, selecciona una muestra aleatoria de tamaño 2000 de la categoría 1, con eso la nueva base tendrá 2000 valores en cada categoría.
 ```
 
 ```{r}
