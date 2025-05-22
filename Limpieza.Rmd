@@ -45,12 +45,11 @@ Anio_hecho <- DESAPARICIONES_FORZADAS_0$Anio_hecho
 mes_hecho <- DESAPARICIONES_FORZADAS_0$mes_hecho 
 Total_Victimas_Caso <- DESAPARICIONES_FORZADAS_0$Total_Victimas_Caso
 Nombre_Municipio <- paste(DESAPARICIONES_FORZADAS_0$Nombre_Municipio, "-", DESAPARICIONES_FORZADAS_0$Nombre_Departamento) 
-# Nombre_Departamento <- DESAPARICIONES_FORZADAS_0$Nombre_Departamento
-# Fuerza_Armada <- DESAPARICIONES_FORZADAS_0$Fuerza_Armada
+Nombre_Departamento <- DESAPARICIONES_FORZADAS_0$Nombre_Departamento
 
 # Crear una nueva base con las variables seleccionadas y se eliminaran los NA (FAltantes)
 
-DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio)
+DESAPARICIONES_FORZADAS_1 <- data.frame(Anio_hecho, mes_hecho, Total_Victimas_Caso, Nombre_Municipio, Nombre_Departamento)
 DESAPARICIONES_FORZADAS_2 <- na.omit(DESAPARICIONES_FORZADAS_1) # Elimina todos los individuos que no tengan información en alguna de las variables seleccionadas
 DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
 ```
@@ -58,30 +57,12 @@ DESAPARICIONES_FORZADAS_3 <- DESAPARICIONES_FORZADAS_2
 ```{r}
 # Eliminar filas donde Anio_hecho es igual a 0
 DESAPARICIONES_FORZADAS_4 <- DESAPARICIONES_FORZADAS_3[!(DESAPARICIONES_FORZADAS_3$Anio_hecho == 0), ]
-# Eliminar filas donde mes_hecho es igual a 0
-#DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$mes_hecho == 0), ]
-# Eliminar filas donde Total_Victimas_Caso es igual a 0
 DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_4[!(DESAPARICIONES_FORZADAS_4$Total_Victimas_Caso == 0), ]
-
-# Si Nombre_Departamento es "SIN INFORMACION", lo eliminamos
-# DESAPARICIONES_FORZADAS_6 <- DESAPARICIONES_FORZADAS_5[!(DESAPARICIONES_FORZADAS_5$Nombre_Departamento == "SIN INFORMACION"), ]
-
-# DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6
 ```
 
 ```{r}
-# Si la Fuerza_Armada es "OTRO ¿CUÁL?", le asignamos "DESCONOCIDO"
-# DESAPARICIONES_FORZADAS_7$Fuerza_Armada[DESAPARICIONES_FORZADAS_7$Fuerza_Armada == "OTRO ¿CUÁL?"] <- "DESCONOCIDO"
-```
-
-```{r}
-# Agrupar por las variables especificadas y sumar Total_Victimas_Caso
-#DESAPARICIONES_FORZADAS_7 <- DESAPARICIONES_FORZADAS_6 %>%
-#  group_by(Anio_hecho, mes_hecho, Nombre_Municipio, Nombre_Departamento, Fuerza_Armada) %>%
-#  summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
-
 DESAPARICIONES_FORZADAS_5 <- DESAPARICIONES_FORZADAS_5 %>%
-  group_by(Anio_hecho, mes_hecho, Nombre_Municipio) %>%
+  group_by(Anio_hecho, mes_hecho, Nombre_Municipio, Nombre_Departamento) %>%
   summarize(Total_Victimas = sum(Total_Victimas_Caso, na.rm = TRUE))
 ```
 
@@ -96,8 +77,7 @@ DESAPARICIONES_FORZADAS_6 <- DESAPARICIONES_FORZADAS_5 %>%
 DESAPARICIONES_FORZADAS_6$Anio_hecho <- as.factor(DESAPARICIONES_FORZADAS_6$Anio_hecho)
 DESAPARICIONES_FORZADAS_6$mes_hecho <- as.factor(DESAPARICIONES_FORZADAS_6$mes_hecho)
 DESAPARICIONES_FORZADAS_6$Nombre_Municipio <- as.factor(DESAPARICIONES_FORZADAS_6$Nombre_Municipio)
-# DESAPARICIONES_FORZADAS_6$Nombre_Departamento <- as.factor(DESAPARICIONES_FORZADAS_6$Nombre_Departamento)
-# DESAPARICIONES_FORZADAS_6$Fuerza_Armada <- as.factor(DESAPARICIONES_FORZADAS_6$Fuerza_Armada)
+DESAPARICIONES_FORZADAS_6$Nombre_Departamento <- as.factor(DESAPARICIONES_FORZADAS_6$Nombre_Departamento)
 DESAPARICIONES_FORZADAS_6$Riesgo <- as.factor(DESAPARICIONES_FORZADAS_6$Riesgo)
 
 # Total_Victimas se mantiene como numérica

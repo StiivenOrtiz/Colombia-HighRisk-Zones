@@ -86,8 +86,6 @@ A partir del entrenamiento se genera el modelo LOGIT para clasificar los individ
 
 ```{r}
 modelo.logit <- glm(Riesgo ~ ., data = Entrenamiento, family="binomial")
-#modelo.logit <- glm(y ~ ., data = Entrenamiento, family = binomial(link = "logit")) # Modelo logit
-
 summary(modelo.logit) # Resumen del modelo```
 ```
 
